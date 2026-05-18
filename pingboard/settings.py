@@ -9,27 +9,28 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
-import environ
 import os
-
 from pathlib import Path
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-env = environ.Env(
-    DEBUG=(bool, False)
-)
+# 1. Try to use django-environ for local development
+try:
+    import environ
+    env = environ.Env(DEBUG=(bool, False))
+    # This will look for your file locally
+    environ.Env.read_env(env_file=str(BASE_DIR / 'environment_variable.env'))
+    
+    SECRET_KEY = env('SECRET_KEY')
+    DEBUG = env('DEBUG')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
-
-environ.Env.read_env(env_file=str(BASE_DIR / 'environment_variable.env'))
-
-# SECURITY WARNING: keep the secret key used in production secret!
-DEBUG = env('DEBUG')
-
-SECRET_KEY = env('SECRET_KEY')
+# 2. Fallback to standard os.environ for Render production
+except (ImportError, FileNotFoundError):
+    # os.environ.get('KEY', 'default_value')
+    SECRET_KEY = os.environ.get('SECRET_KEY')
+    
+    # Render passes DEBUG as a string ("false"). We must convert it to a boolean.
+    DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 
