@@ -14,23 +14,24 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# 1. Try to use django-environ for local development
-try:
+# Check if we are running on Render production
+IS_ON_RENDER = os.environ.get('RENDER') == 'True'
+
+if not IS_ON_RENDER:
+    # --- LOCAL DEVELOPMENT ---
+    # Use django-environ safely because we know we are local
     import environ
     env = environ.Env(DEBUG=(bool, False))
-    # This will look for your file locally
     environ.Env.read_env(env_file=str(BASE_DIR / 'environment_variable.env'))
     
     SECRET_KEY = env('SECRET_KEY')
     DEBUG = env('DEBUG')
-
-# 2. Fallback to standard os.environ for Render production
-# Fallback to standard os.environ for Render production
-except (ImportError, FileNotFoundError):
-    # If Render hasn't injected SECRET_KEY yet, use a placeholder so collectstatic doesn't crash
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-unsafe-key-for-building-only')
+else:
+    # --- RENDER PRODUCTION ---
+    # Read directly from Render's environment variables with safe defaults for building
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'render-build-placeholder-key')
     
-    # Convert string "false"/"true" to actual Python Boolean
+    # Render passes DEBUG as "false" or "true" strings. Convert to Python boolean.
     DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 # SECURITY WARNING: don't run with debug turned on in production!
