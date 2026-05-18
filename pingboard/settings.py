@@ -9,23 +9,31 @@ https://docs.djangoproject.com/en/6.0/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/6.0/ref/settings/
 """
+import environ
+import os
 
 from pathlib import Path
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+env = environ.Env(
+    DEBUG=(bool, False)
+)
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
+environ.Env.read_env(env_file=str(BASE_DIR / 'environment_variable.env'))
+
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-=3qr4%!zlrwt$5+ua37q4-(w5jer=@o5(qm=&i3_nl0n4_mxas"
+DEBUG = env('DEBUG')
+
+SECRET_KEY = env('SECRET_KEY')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
 
-ALLOWED_HOSTS = ['uptime-funk.onrender.com']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1','uptime-funk.onrender.com']
 
 
 # Application definition
@@ -37,6 +45,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
+    'monitors',
 ]
 
 MIDDLEWARE = [
