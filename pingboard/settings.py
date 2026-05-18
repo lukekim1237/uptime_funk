@@ -25,11 +25,12 @@ try:
     DEBUG = env('DEBUG')
 
 # 2. Fallback to standard os.environ for Render production
+# Fallback to standard os.environ for Render production
 except (ImportError, FileNotFoundError):
-    # os.environ.get('KEY', 'default_value')
-    SECRET_KEY = os.environ.get('SECRET_KEY')
+    # If Render hasn't injected SECRET_KEY yet, use a placeholder so collectstatic doesn't crash
+    SECRET_KEY = os.environ.get('SECRET_KEY', 'fallback-unsafe-key-for-building-only')
     
-    # Render passes DEBUG as a string ("false"). We must convert it to a boolean.
+    # Convert string "false"/"true" to actual Python Boolean
     DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 # SECURITY WARNING: don't run with debug turned on in production!
