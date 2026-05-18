@@ -14,27 +14,21 @@ from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# Check if we are running on Render production
-IS_ON_RENDER = os.environ.get('RENDER') == 'True'
+# 1. Try to load local variables if python-dotenv is installed (Local Dev Only)
+try:
+    from dotenv import load_dotenv
+    # Explicitly point to your custom named file
+    load_dotenv(str(BASE_DIR / 'environment_variable.env'))
+except ImportError:
+    pass
 
-if not IS_ON_RENDER:
-    # --- LOCAL DEVELOPMENT ---
-    # Use django-environ safely because we know we are local
-    import environ
-    env = environ.Env(DEBUG=(bool, False))
-    environ.Env.read_env(env_file=str(BASE_DIR / 'environment_variable.env'))
-    
-    SECRET_KEY = env('SECRET_KEY')
-    DEBUG = env('DEBUG')
-else:
-    # --- RENDER PRODUCTION ---
-    # Read directly from Render's environment variables with safe defaults for building
-    SECRET_KEY = os.environ.get('SECRET_KEY', 'render-build-placeholder-key')
-    
-    # Render passes DEBUG as "false" or "true" strings. Convert to Python boolean.
-    DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+# 2. Read the environment variables
+SECRET_KEY = os.environ.get('SECRET_KEY')
+if not SECRET_KEY:
+    SECRET_KEY = '5c7ba37542d266809bb56fd71e54395e'
 
-# SECURITY WARNING: don't run with debug turned on in production!
+# Convert string "True"/"False" to an actual Python boolean
+DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1','uptime-funk.onrender.com']
 
