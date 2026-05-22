@@ -28,7 +28,8 @@ if not SECRET_KEY:
     SECRET_KEY = '5c7ba37542d266809bb56fd71e54395e'
 
 # Convert string "True"/"False" to an actual Python boolean
-DEBUG = os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
+DEBUG = True
+# os.environ.get('DEBUG', 'False').lower() in ('true', '1', 't')
 
 ALLOWED_HOSTS = ['localhost', '127.0.0.1','uptime-funk.onrender.com']
 
