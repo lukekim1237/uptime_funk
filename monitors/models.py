@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 
 # Create your models here.
-class Monitors(models.Model):
+class Monitor(models.Model):
     name = models.CharField(max_length=200)
     url = models.URLField(max_length=200)
     # creating a database relationship linking a specific model to the built-in User model
@@ -13,7 +13,7 @@ class Monitors(models.Model):
         return self.name
 
 class CheckResult(models.Model):
-    monitor = models.ForeignKey(Monitors, on_delete=models.CASCADE, related_name='checks')
+    monitor = models.ForeignKey(Monitor, on_delete=models.CASCADE, related_name='checks')
     result_timestamp = models.DateTimeField(auto_now_add=True)
     status_code = models.IntegerField(null=True)
     response_time_ms = models.IntegerField(null=True)

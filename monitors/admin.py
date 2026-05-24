@@ -1,11 +1,11 @@
 from django.contrib import admin
 
 # Register your models here.
-from .models import Monitors, CheckResult
+from .models import Monitor, CheckResult
 
 
-@admin.register(Monitors)
-class MonitorsAdmin(admin.ModelAdmin):
+@admin.register(Monitor)
+class MonitorAdmin(admin.ModelAdmin):
     list_display = ['name', 'url', 'owner', 'is_active', 'monitor_timestamp']
 
 
