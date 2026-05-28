@@ -74,6 +74,14 @@ TEMPLATES = [
     },
 ]
 
+CSRF_TRUSTED_ORIGINS = [
+    "https://*.preview.app.github.dev",
+    "https://localhost:*",
+    "https://127.0.0.1:*",
+    "https://localhost:8000",
+    "http://localhost:8000",
+]
+
 WSGI_APPLICATION = "pingboard.wsgi.application"
 
 
