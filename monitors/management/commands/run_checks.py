@@ -47,3 +47,10 @@ class Command(BaseCommand):
                 )
 
         self.stdout.write(self.style.SUCCESS("Done."))
+
+    """
+    Local Server vs Render Server
+    Error Handling: Displays errors directly in your terminal.Halts the deployment process. You must view the Events or Logs on the Render Dashboard to see errors.
+    Environment: Uses your OS, local file paths, and environment variables (.env).Uses production environment variables defined in the Render Dashboard.
+    Persistence: hanges to code reload automatically.File changes and runtime files are temporary. A new deploy resets the file system.
+    """
