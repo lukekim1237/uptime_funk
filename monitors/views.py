@@ -10,7 +10,20 @@ from monitors.models import Monitor
 from django.contrib.auth.models import Group, User
 from rest_framework import permissions, viewsets
 
-from monitors.serializers import GroupSerializer, UserSerializer
+import monitors.serializers as serializers
+
+# Avoid fragile direct-symbol imports at Django startup.
+# If serializers.py fails to import or the attributes are missing, this will raise
+# a clearer error instead of a misleading ImportError.
+try:
+    GroupSerializer = serializers.GroupSerializer
+    UserSerializer = serializers.UserSerializer
+except AttributeError as e:
+    raise ImportError(
+        "monitors.serializers did not define GroupSerializer/UserSerializer. "
+        "Check that monitors/serializers.py imports cleanly in the deploy environment."
+    ) from e
+
 
 def index(request):
     return render(request, 'monitors/index.html')
