@@ -1,16 +1,17 @@
 import os
 
+from rest_framework import generics, permissions, viewsets
+
+from django.contrib.auth.models import Group, User
 from django.http import HttpResponseForbidden, HttpResponseNotAllowed, JsonResponse
 from django.shortcuts import render
 from django.views.decorators.csrf import csrf_exempt
 
-from monitors.management.commands.run_checks import Command
-from monitors.models import Monitor
-
-from django.contrib.auth.models import Group, User
-from rest_framework import permissions, viewsets
-
 import monitors.serializers as serializers
+from monitors.management.commands.run_checks import Command
+from monitors.models import CheckResult, Monitor
+from monitors.serializers import CheckResultSerializer, MonitorSerializer
+
 
 # Avoid fragile direct-symbol imports at Django startup.
 # If serializers.py fails to import or the attributes are missing, this will raise
@@ -63,3 +64,40 @@ class GroupViewSet(viewsets.ModelViewSet):
     queryset = Group.objects.all().order_by("name")
     serializer_class = GroupSerializer
     permission_classes = [permissions.IsAuthenticated]
+
+
+
+class MonitorListCreate(generics.ListCreateAPIView):
+    queryset = Monitor.objects.all()
+    serializer_class = MonitorSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # self.request.user represents the logged-in user
+        return Monitor.objects.filter(owner=self.request.user)
+    
+    def perform_create(self, serializer):
+        serializer.save(owner=self.request.user)
+
+
+class MonitorDetail(generics.RetrieveDestroyAPIView):
+    queryset = Monitor.objects.all()
+    serializer_class = MonitorSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        # self.request.user represents the logged-in user
+        return Monitor.objects.filter(owner=self.request.user)
+
+
+class CheckResultList(generics.ListAPIView):
+    serializer_class = CheckResultSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        return CheckResult.objects.filter(
+            monitor_id=self.kwargs['monitor_id'],  # ← matches the URL kwarg
+            monitor__owner=self.request.user,
+        ).order_by('-result_timestamp')[:20]
+    
+    # 3637e968e6387d526aba61cb120ba204608acc11
