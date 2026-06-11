@@ -101,3 +101,9 @@ class CheckResultList(generics.ListAPIView):
         ).order_by('-result_timestamp')[:20]
     
     # 3637e968e6387d526aba61cb120ba204608acc11
+
+def login_page(request):
+    return render(request, 'monitors/login.html')
+
+def dashboard_page(request):
+    return render(request, 'monitors/dashboard.html')

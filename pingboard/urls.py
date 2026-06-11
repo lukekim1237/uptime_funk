@@ -18,4 +18,6 @@ urlpatterns = [
     path("api/", include("monitors.urls")),                              # ← delegate to monitors/urls.py
     path("", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
+    path('', views.login_page, name='login'),
+    path('dashboard/', views.dashboard_page, name='dashboard'),
 ]

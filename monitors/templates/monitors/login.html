@@ -27,12 +27,11 @@
       const password = document.getElementById('password').value;
       const message  = document.getElementById('message');
 
-    <!-- Send those credentials to your Django API. JSON.stringify packages them up as JSON, which is what the API expects. -->
       const response = await fetch('/api/token-auth/', { 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username, password })
-      });`
+      });
     if (response.ok) { 
         const data = await response.json();
         sessionStorage.setItem('token', data.token);
