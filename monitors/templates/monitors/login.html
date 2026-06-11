@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+</head>
+<body>
+  <main class="container">
+    <h1>Log in</h1>
+
+    <label for="username">Username</label>
+    <input type="text" id="username" placeholder="Enter username">
+
+    <label for="password">Password</label>
+    <input type="password" id="password" placeholder="Enter password">
+
+    <button id="login-btn">Log in</button>
+
+    <p id="message"></p>
+  </main>
+
+  <script>
+    document.getElementById('login-btn').addEventListener('click', async function () {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const message  = document.getElementById('message');
+
+    <!-- Send those credentials to your Django API. JSON.stringify packages them up as JSON, which is what the API expects. -->
+      const response = await fetch('/api/token-auth/', { 
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });`
+    if (response.ok) { 
+        const data = await response.json();
+        sessionStorage.setItem('token', data.token);
+        window.location.href = '/dashboard/';
+      } else {
+        message.textContent = 'Invalid username or password.';
+      }
+    });
+  </script>
+</body>
+</html>
