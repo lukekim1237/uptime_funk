@@ -12,11 +12,10 @@ router.register(r"groups", views.GroupViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', views.index, name='home'),
     path("api/trigger-checks/", trigger_checks, name="trigger_checks"),
-    path("api/token-auth/", obtain_auth_token, name="api_token_auth"),  # ← its own pattern
-    path("api/", include("monitors.urls")),                              # ← delegate to monitors/urls.py
-    path("", include(router.urls)),
+    path("api/token-auth/", obtain_auth_token, name="api_token_auth"),
+    path("api/", include("monitors.urls")),
+    path("api/", include(router.urls)),
     path("api-auth/", include("rest_framework.urls", namespace="rest_framework")),
     path('', views.login_page, name='login'),
     path('dashboard/', views.dashboard_page, name='dashboard'),

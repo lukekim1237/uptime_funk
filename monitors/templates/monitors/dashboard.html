@@ -69,7 +69,7 @@
 
     // Logout
     document.getElementById('logout-btn').addEventListener('click', () => {
-      Storage.removeItem('token');
+      sessionStorage.removeItem('token');
       window.location.href = '/login/';
     });
 
