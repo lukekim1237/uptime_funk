@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pingboard</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+  <style>
+    header { display: flex; justify-content: space-between; align-items: center; }
+    details { margin-bottom: 1rem; }
+    #chart-container { margin-top: 2rem; }
+  </style>
+</head>
+<body>
+  <main class="container">
+
+    <!-- Header -->
+    <header>
+      <h1>Pingboard</h1>
+      <button id="logout-btn" class="outline">Sign out</button>
+    </header>
+
+    <!-- Add Monitor (collapsible) -->
+    <details>
+      <summary>Add monitor</summary>
+      <div class="grid">
+        <label>
+          Name
+          <input type="text" id="monitor-name" placeholder="My API" />
+        </label>
+        <label>
+          URL
+          <input type="url" id="monitor-url" placeholder="https://example.com/health" />
+        </label>
+      </div>
+      <button id="add-monitor-btn">Add monitor</button>
+    </details>
+
+    <!-- Monitor table -->
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>URL</th>
+          <th>Status</th>
+          <th>Response</th>
+          <th>Last Checked</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="monitors-tbody">
+        <tr id="empty-row">
+          <td colspan="6" style="text-align:center;">No monitors yet. Add one above.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- Chart placeholder (Week 5) -->
+    <div id="chart-container">
+      <canvas id="chart"></canvas>
+    </div>
+
+  </main>
+
+  <script>
+    const token = sessionStorage.getItem('token');
+    if (!token) window.location.href = '/login/';
+
+    // Logout
+    document.getElementById('logout-btn').addEventListener('click', () => {
+      Storage.removeItem('token');
+      window.location.href = '/login/';
+    });
+
+    // Load monitors
+    async function loadMonitors() {
+      const res = await fetch('/api/monitors/', {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      if (res.status === 401) { window.location.href = '/login/'; return; }
+      const monitors = await res.json();
+      renderTable(monitors);
+    }
+
+    function renderTable(monitors) {
+      const tbody = document.getElementById('monitors-tbody');
+      if (monitors.length === 0) {
+        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;">No monitors yet. Add one above.</td></tr>`;
+        return;
+      }
+      tbody.innerHTML = monitors.map(m => {
+        const c = m.latest_check || {};
+        const status = c.is_up === true ? 'Up' : c.is_up === false ? 'Down' : '—';
+        const response = c.response_time_ms != null ? `${c.response_time_ms} ms` : '—';
+        const checked = c.checked_at ? new Date(c.checked_at).toLocaleString() : 'Never';
+        return `<tr>
+          <td>${m.name}</td>
+          <td>${m.url}</td>
+          <td>${status}</td>
+          <td>${response}</td>
+          <td>${checked}</td>
+          <td><button class="outline delete-btn" data-id="${m.id}">Delete</button></td>
+        </tr>`;
+      }).join('');
+
+      tbody.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.addEventListener('click', () => deleteMonitor(btn.dataset.id));
+      });
+    }
+
+    // Add monitor
+    document.getElementById('add-monitor-btn').addEventListener('click', async () => {
+      const name = document.getElementById('monitor-name').value.trim();
+      const url  = document.getElementById('monitor-url').value.trim();
+      if (!name || !url) return;
+      await fetch('/api/monitors/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Token ${token}` },
+        body: JSON.stringify({ name, url })
+      });
+      document.getElementById('monitor-name').value = '';
+      document.getElementById('monitor-url').value  = '';
+      loadMonitors();
+    });
+
+    // Delete monitor
+    async function deleteMonitor(id) {
+      if (!confirm('Delete this monitor?')) return;
+      await fetch(`/api/monitors/${id}/`, {
+        method: 'DELETE',
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      loadMonitors();
+    }
+
+    loadMonitors();
+  </script>
+</body>
+</html>
