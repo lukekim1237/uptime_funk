@@ -10,6 +10,25 @@
     header { display: flex; justify-content: space-between; align-items: center; }
     details { margin-bottom: 1rem; }
     #chart-container { margin-top: 2rem; }
+    .status-badge {
+      padding: 0.25rem 0.5rem;
+      border-radius: 0.25rem;
+      font-weight: 600;
+      display: inline-block;
+      white-space: nowrap;
+    }
+    .status-up {
+      background-color: #d4edda;
+      color: #155724;
+    }
+    .status-down {
+      background-color: #f8d7da;
+      color: #721c24;
+    }
+    .status-unknown {
+      background-color: #e2e3e5;
+      color: #383d41;
+    }
   </style>
 </head>
 <body>
@@ -90,14 +109,28 @@
         return;
       }
       tbody.innerHTML = monitors.map(m => {
-        const c = m.latest_check || {};
-        const status = c.is_up === true ? 'Up' : c.is_up === false ? 'Down' : '—';
-        const response = c.response_time_ms != null ? `${c.response_time_ms} ms` : '—';
-        const checked = c.checked_at ? new Date(c.checked_at).toLocaleString() : 'Never';
+        const c = m.latest_check;
+        
+        // Status badge: colored UP or DOWN, or Pending if null
+        let statusHTML;
+        if (!c) {
+          statusHTML = '<span class="status-badge status-unknown">Pending</span>';
+        } else if (c.is_up === true) {
+          statusHTML = '<span class="status-badge status-up">● UP</span>';
+        } else if (c.is_up === false) {
+          statusHTML = '<span class="status-badge status-down">● DOWN</span>';
+        }
+        
+        // Response time: response_time_ms + "ms", or "—" if null
+        const response = c && c.response_time_ms != null ? `${c.response_time_ms}ms` : '—';
+        
+        // Last checked: formatted as readable time using toLocaleString()
+        const checked = c && c.checked_at ? new Date(c.checked_at).toLocaleString() : '—';
+        
         return `<tr>
           <td>${m.name}</td>
           <td>${m.url}</td>
-          <td>${status}</td>
+          <td>${statusHTML}</td>
           <td>${response}</td>
           <td>${checked}</td>
           <td><button class="outline delete-btn" data-id="${m.id}">Delete</button></td>
