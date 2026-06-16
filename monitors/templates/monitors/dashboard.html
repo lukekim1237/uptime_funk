@@ -102,6 +102,51 @@
       renderTable(monitors);
     }
 
+    const chartCtx = document.getElementById('chart').getContext('2d');
+    const monitorChart = new Chart(chartCtx, {
+      type: 'line',
+      data: {
+        labels: [],
+        datasets: [{
+          label: 'Response time (ms)',
+          data: [],
+          borderColor: 'blue',
+          backgroundColor: 'rgba(0, 123, 255, 0.2)',
+          fill: true,
+          tension: 0.3,
+        }]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true,
+            title: { display: true, text: 'Milliseconds' }
+          }
+        }
+      }
+    });
+
+    function renderChart(monitors) {
+      const labels = monitors.length ? monitors.map(m => m.name) : ['No monitors'];
+      const data = monitors.length ? monitors.map(m => m.latest_check?.response_time_ms ?? 0) : [0];
+
+      monitorChart.data.labels = labels;
+      monitorChart.data.datasets[0].data = data;
+      monitorChart.update();
+    }
+
+    async function loadMonitors() {
+      const res = await fetch('/api/monitors/', {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      if (res.status === 401) { window.location.href = '/login/'; return; }
+      const monitors = await res.json();
+      renderTable(monitors);
+      renderChart(monitors);
+    }
+
+    loadMonitors();
+
     function renderTable(monitors) {
       const tbody = document.getElementById('monitors-tbody');
       if (monitors.length === 0) {
