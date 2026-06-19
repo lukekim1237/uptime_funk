@@ -50,7 +50,9 @@ INSTALLED_APPS = [
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework.authentication.TokenAuthentication',
+        # If there's SessionAuthentication in this list, Django REST will
+        # enforce CSRF check -> 403 Forbidden error when POST/DELETE without CSRF
+        'rest_framework.authentication.TokenAuthentication', # better than SessionAuth
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',

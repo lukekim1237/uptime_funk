@@ -9,7 +9,7 @@
   <style>
     header { display: flex; justify-content: space-between; align-items: center; }
     details { margin-bottom: 1rem; }
-    #chart-container { margin-top: 2rem; }
+    #chart-container { margin-top: 2rem; display: none; }
     .status-badge {
       padding: 0.25rem 0.5rem;
       border-radius: 0.25rem;
@@ -29,6 +29,8 @@
       background-color: #e2e3e5;
       color: #383d41;
     }
+    tbody tr { cursor: pointer; }
+    .selected-row { background-color: #dbeafe; }
   </style>
 </head>
 <body>
@@ -92,15 +94,7 @@
       window.location.href = '/login/';
     });
 
-    // Load monitors
-    async function loadMonitors() {
-      const res = await fetch('/api/monitors/', {
-        headers: { 'Authorization': `Token ${token}` }
-      });
-      if (res.status === 401) { window.location.href = '/login/'; return; }
-      const monitors = await res.json();
-      renderTable(monitors);
-    }
+
 
     const chartCtx = document.getElementById('chart').getContext('2d');
     const monitorChart = new Chart(chartCtx, {
@@ -145,8 +139,6 @@
       renderChart(monitors);
     }
 
-    loadMonitors();
-
     function renderTable(monitors) {
       const tbody = document.getElementById('monitors-tbody');
       if (monitors.length === 0) {
@@ -185,6 +177,20 @@
       tbody.querySelectorAll('.delete-btn').forEach(btn => {
         btn.addEventListener('click', () => deleteMonitor(btn.dataset.id));
       });
+
+      tbody.querySelectorAll('tr').forEach(row => {
+        row.addEventListener('click', (e) => {
+          if (e.target.classList.contains('delete-btn')) return;
+          const btn = row.querySelector('.delete-btn');
+          if (!btn) return;
+
+      // Clear highlight from all rows, then mark this one
+          tbody.querySelectorAll('tr').forEach(r => r.classList.remove('selected-row')); // 👈 clear all
+          row.classList.add('selected-row'); // 👈 mark clicked row
+
+          fetchChecks(btn.dataset.id);
+        });
+      });
     }
 
     // Add monitor
@@ -210,6 +216,19 @@
         headers: { 'Authorization': `Token ${token}` }
       });
       loadMonitors();
+    }
+    
+    async function fetchChecks(monitorId) {
+      const res = await fetch(`/api/monitors/${monitorId}/checks/`, {
+        headers: { 'Authorization': `Token ${token}` }
+      });
+      const data = await res.json();
+      const labels = data.map(c => c.checked_at).reverse();
+      const values = data.map(c => c.response_time_ms).reverse();
+      monitorChart.data.labels = labels;
+      monitorChart.data.datasets[0].data = values;
+      monitorChart.update();
+      document.getElementById('chart-container').style.display = 'block';
     }
 
     loadMonitors();
