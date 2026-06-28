@@ -6,3 +6,4 @@ venv/
 environment_variable.env
 staticfiles/
 node_modules
+*.sqlite3
